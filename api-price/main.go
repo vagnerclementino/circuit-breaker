@@ -9,6 +9,26 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
+// Status is the server status
+type Status int
+
+// The server status values
+const (
+	DOWN Status = iota // 0
+	UP                 // 1
+)
+
+func (s Status) String() string {
+	names := [2]string{
+		"DOWN",
+		"UP",
+	}
+	if s < DOWN || s > UP {
+		return "unknown"
+	}
+	return names[s]
+}
+
 // Price represents the product's price
 type Price struct {
 	ProductID int     `json:"product_id"`
@@ -17,7 +37,7 @@ type Price struct {
 
 // ServerStatus show the current status from server
 type ServerStatus struct {
-	Status       string    `json:"status"`
+	Status       `json:"status"`
 	LastUpTime   time.Time `json:"last_up_time"`
 	LastDownTime time.Time `json:"last_down_time"`
 }
@@ -27,21 +47,32 @@ var serverStatusChannel = make(chan ServerStatus)
 func manageServerStatus(c chan ServerStatus) {
 
 	serverStatus := ServerStatus{
-		Status:     "UP",
+		Status:     UP,
 		LastUpTime: time.Now(),
 	}
 
 	for {
-		if serverStatus.Status == "UP" && time.Now().Sub(serverStatus.LastUpTime).Seconds() > 10 {
-			serverStatus.Status = "DOWN"
+		if serverStatus.Status == UP && time.Since(serverStatus.LastUpTime).Seconds() > 10 {
+			serverStatus.Status = DOWN
 			serverStatus.LastDownTime = time.Now()
 		}
-		if serverStatus.Status == "DOWN" && time.Now().Sub(serverStatus.LastDownTime).Seconds() > 30 {
-			serverStatus.Status = "UP"
+		if serverStatus.Status == DOWN && time.Since(serverStatus.LastDownTime).Seconds() > 30 {
+			serverStatus.Status = UP
 			serverStatus.LastUpTime = time.Now()
 		}
-		// fmt.Println(fmt.Sprintf("Current status of server: %s", serverStatus.Status))
 		c <- serverStatus
+	}
+}
+
+// VerifyServerStatus middleware verifies the server status
+func VerifyServerStatus(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		serverStatus := <-serverStatusChannel
+
+		if serverStatus.Status == DOWN {
+			return echo.NewHTTPError(http.StatusInternalServerError)
+		}
+		return next(c)
 	}
 }
 
@@ -54,7 +85,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Routes
-	e.GET("/prices/products/:id", getProductPrice)
+	e.GET("/prices/products/:id", getProductPrice, VerifyServerStatus)
 	e.GET("/status", getServerStatus)
 
 	go manageServerStatus(serverStatusChannel)
@@ -66,13 +97,6 @@ func main() {
 
 // Handler
 func getProductPrice(c echo.Context) error {
-
-	serverStatus := <-serverStatusChannel
-
-	if serverStatus.Status == "DOWN" {
-		return echo.NewHTTPError(http.StatusInternalServerError)
-	}
-
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -84,7 +108,18 @@ func getProductPrice(c echo.Context) error {
 	})
 }
 
+// Handler
 func getServerStatus(c echo.Context) error {
 	serverStatus := <-serverStatusChannel
-	return c.JSON(http.StatusOK, serverStatus)
+	return c.JSON(http.StatusOK,
+		struct {
+			Status       string    `json:"status"`
+			LastUpTime   time.Time `json:"last_up_time"`
+			LastDownTime time.Time `json:"last_down_time"`
+		}{
+			Status:       serverStatus.Status.String(),
+			LastUpTime:   serverStatus.LastUpTime,
+			LastDownTime: serverStatus.LastDownTime,
+		},
+	)
 }
