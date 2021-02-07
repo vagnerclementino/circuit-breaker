@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,24 +15,33 @@ type Price struct {
 	Price     float64 `json:"price"`
 }
 
-var isOutOfService bool
-var serviceChannel = make(chan bool)
+// ServerStatus show the current status from server
+type ServerStatus struct {
+	Status       string    `json:"status"`
+	LastUpTime   time.Time `json:"last_up_time"`
+	LastDownTime time.Time `json:"last_down_time"`
+}
 
-func outOfService() {
-	lastUpTime := time.Now()
-	lastDownTime := time.Now()
+var serverStatusChannel = make(chan ServerStatus)
+
+func manageServerStatus(c chan ServerStatus) {
+
+	serverStatus := ServerStatus{
+		Status:     "UP",
+		LastUpTime: time.Now(),
+	}
+
 	for {
-		if !isOutOfService && time.Now().Sub(lastUpTime).Seconds() > 10 {
-			isOutOfService = true
-			lastDownTime = time.Now()
-
+		if serverStatus.Status == "UP" && time.Now().Sub(serverStatus.LastUpTime).Seconds() > 10 {
+			serverStatus.Status = "DOWN"
+			serverStatus.LastDownTime = time.Now()
 		}
-		if isOutOfService && time.Now().Sub(lastDownTime).Seconds() > 30 {
-			isOutOfService = false
-			lastUpTime = time.Now()
+		if serverStatus.Status == "DOWN" && time.Now().Sub(serverStatus.LastDownTime).Seconds() > 30 {
+			serverStatus.Status = "UP"
+			serverStatus.LastUpTime = time.Now()
 		}
-		fmt.Println(fmt.Sprintf("Current value of out of service: %t", isOutOfService))
-		serviceChannel <- isOutOfService
+		// fmt.Println(fmt.Sprintf("Current status of server: %s", serverStatus.Status))
+		c <- serverStatus
 	}
 }
 
@@ -47,8 +55,9 @@ func main() {
 
 	// Routes
 	e.GET("/prices/products/:id", getProductPrice)
+	e.GET("/status", getServerStatus)
 
-	go outOfService()
+	go manageServerStatus(serverStatusChannel)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))
@@ -58,9 +67,9 @@ func main() {
 // Handler
 func getProductPrice(c echo.Context) error {
 
-	isServiceOut := <-serviceChannel
+	serverStatus := <-serverStatusChannel
 
-	if isServiceOut {
+	if serverStatus.Status == "DOWN" {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
@@ -73,4 +82,9 @@ func getProductPrice(c echo.Context) error {
 		ProductID: id,
 		Price:     100.00,
 	})
+}
+
+func getServerStatus(c echo.Context) error {
+	serverStatus := <-serverStatusChannel
+	return c.JSON(http.StatusOK, serverStatus)
 }
