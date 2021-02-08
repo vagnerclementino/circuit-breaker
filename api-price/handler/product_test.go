@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/vagnerclementino/dojo-circuit-breaker/api-price/entity"
 )
 
 // TestGetProductPrice is a testing
@@ -26,9 +27,9 @@ func TestGetProductPrice(t *testing.T) {
 
 	// Then
 
-	if assert.NoError(t, getProductPrice(c)) {
+	if assert.NoError(t, GetProductPrice(c)) {
 		expectedJSON := ""
-		b, err := json.Marshal(Price{
+		b, err := json.Marshal(entity.Product{
 			ProductID: 1,
 			Price:     100.00,
 		})
