@@ -1,0 +1,14 @@
+.editorconfig
+.git
+AUTHORS.md
+CONTRIBUTING.md
+LICENSE
+Makefile
+NOTICE
+README.md
+.dockerignore
+*_test.go
+Dockerfile
+arm/
+powerpc/
+mips/
