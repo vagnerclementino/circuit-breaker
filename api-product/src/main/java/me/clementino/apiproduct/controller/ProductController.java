@@ -28,6 +28,9 @@ public class ProductController implements ProductAPI {
                         .ok()
                         .body(product)
                 )
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "product not found"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "product not found")
+                );
     }
 }

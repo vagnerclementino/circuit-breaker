@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -24,4 +24,10 @@ public class Product {
     @Column(length = 100)
     @Size(min = 10, max = 100)
     private String name;
+
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer=5, fraction=2)
+    @NotNull(message = "Product must have price")
+    @Column( nullable = false )
+    private BigDecimal price;
 }

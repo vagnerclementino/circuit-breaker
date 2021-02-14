@@ -7,13 +7,19 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.math.BigDecimal;
+
 @Configuration
 @Slf4j
 public class LoadDatabase {
     @Bean
     public CommandLineRunner initDatabase(ProductRepository productRepository) {
         return args -> {
-            var product = Product.builder().id(1L).name("Arquitetura de Software Moderna").build();
+            var product = Product.builder()
+                    .id(1L)
+                    .name("Arquitetura de Software Moderna")
+                    .price(BigDecimal.valueOf(100.00))
+                    .build();
             log.info("Preloading " +  productRepository.save(product).toString());
         };
     }
