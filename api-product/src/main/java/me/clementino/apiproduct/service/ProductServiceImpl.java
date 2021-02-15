@@ -20,9 +20,15 @@ public class ProductServiceImpl implements ProductService{
     }
 
     @Override
-    @Cacheable("equipments")
+    @Cacheable("products")
     public Optional<Product> getProductById(Long id) {
         log.debug("Retrieving product - id: {}", id);
-        return productRepository.findById(id);
+        var optProduct = productRepository.findById(id);
+        return optProduct
+                .map(product -> {
+                    product.setSuggestedPrice(Optional.ofNullable(product.getPrice()));
+                    return Optional.of(product);
+                })
+                .orElse(Optional.empty());
     }
 }

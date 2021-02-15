@@ -1,6 +1,7 @@
 package me.clementino.apiproduct.domain.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -26,8 +28,13 @@ public class Product {
     private String name;
 
     @DecimalMin(value = "0.0", inclusive = false)
-    @Digits(integer=5, fraction=2)
+    @Digits(integer = 5, fraction = 2)
     @NotNull(message = "Product must have price")
-    @Column( nullable = false )
+    @Column(nullable = false)
     private BigDecimal price;
+
+    @JsonInclude()
+    @Transient
+    @Builder.Default
+    private Optional<BigDecimal> suggestedPrice = Optional.empty();
 }
