@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 import java.util.Random;
 
 import static io.restassured.RestAssured.when;
@@ -47,7 +46,7 @@ public class ProductE2ETest {
         var suggestedPrice = savedProduct
                 .getSuggestedPrice()
                 .orElse(savedProduct.getPrice());
-        savedProduct.setSuggestedPrice(Optional.of(suggestedPrice));
+        savedProduct.setSuggestedPrice(suggestedPrice);
 
         var productResponse = when()
                 .get(String.format("http://localhost:%s/api/v1/products/%s", port, savedProduct.getId()))

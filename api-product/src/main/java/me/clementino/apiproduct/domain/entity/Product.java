@@ -35,6 +35,9 @@ public class Product {
 
     @JsonInclude()
     @Transient
-    @Builder.Default
-    private Optional<BigDecimal> suggestedPrice = Optional.empty();
+    private BigDecimal suggestedPrice;
+
+    public Optional<BigDecimal> getSuggestedPrice(){
+        return Optional.ofNullable(suggestedPrice);
+    }
 }

@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @Slf4j
 public class LoadDatabase {
     @Bean
-    public CommandLineRunner initDatabase(ProductRepository productRepository) {
+    public CommandLineRunner initDatabase(final ProductRepository productRepository) {
         return args -> {
             var product = Product.builder()
                     .id(1L)
