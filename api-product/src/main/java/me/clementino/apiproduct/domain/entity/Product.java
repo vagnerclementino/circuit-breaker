@@ -6,9 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Transient;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -16,6 +26,7 @@ import java.util.Optional;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Entity
 public class Product {
     @Id
@@ -37,7 +48,7 @@ public class Product {
     @Transient
     private BigDecimal suggestedPrice;
 
-    public Optional<BigDecimal> getSuggestedPrice(){
+    public Optional<BigDecimal> getSuggestedPrice() {
         return Optional.ofNullable(suggestedPrice);
     }
 }
