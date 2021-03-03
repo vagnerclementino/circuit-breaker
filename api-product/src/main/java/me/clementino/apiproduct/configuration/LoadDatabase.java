@@ -6,11 +6,13 @@ import me.clementino.apiproduct.repository.ProductRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.math.BigDecimal;
 
 @Configuration
 @Slf4j
+@Profile("!test")
 public class LoadDatabase {
     @Bean
     public CommandLineRunner initDatabase(final ProductRepository productRepository) {

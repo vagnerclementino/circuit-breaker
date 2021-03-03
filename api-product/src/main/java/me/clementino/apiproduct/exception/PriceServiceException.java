@@ -13,7 +13,7 @@ public class PriceServiceException extends ResponseStatusException {
     }
 
     public PriceServiceException(int statusCode, String message, Throwable cause) {
-        super(HttpStatus.NOT_FOUND, String.format(MESSAGE_TEMPLATE, statusCode, message), cause);
+        super(HttpStatus.INTERNAL_SERVER_ERROR, String.format(MESSAGE_TEMPLATE, statusCode, message), cause);
     }
 
 
