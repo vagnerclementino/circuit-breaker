@@ -43,7 +43,7 @@ public class PriceServiceClientImpl implements PriceServiceClient {
     public BigDecimal fetchPriceByProductId(Long productId) {
 
         var request = HttpRequest.newBuilder()
-                .uri(URI.create(String.format("%s/products/%d", priceServiceHost, productId)))
+                .uri(URI.create(String.format("%s/prices/products/%d", priceServiceHost, productId)))
                 .GET()
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .build();
@@ -59,7 +59,6 @@ public class PriceServiceClientImpl implements PriceServiceClient {
                     var responseError = mapper.readValue(response.body(), PriceServiceErrorResponse.class);
                     throw new PriceServiceException(response.statusCode(), responseError.getMessage());
                 }
-
             } else {
                 throw new PriceServiceException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "The response cannot be null");
             }
