@@ -1,0 +1,36 @@
+version: "3.7"
+
+  
+networks:
+ dojo-circuit-breaker-net:
+
+services:
+#######################################
+  # API PRODUCT
+#######################################
+  api-product:
+    build:
+      context: api-product
+      dockerfile: Dockerfile
+    container_name: api-product
+    restart: always
+    networks:
+      - dojo-circuit-breaker-net
+    environment:
+      CONTAINER_PORT: 8090
+      PRICE_SERVICE_URL: http://api-price:8080
+    ports:
+      - "8090:8090"
+#######################################
+# API PRICE
+#######################################
+  api-price:
+    build:
+      context: api-price
+      dockerfile: Dockerfile
+    container_name: api-price
+    restart: always
+    networks:
+      - dojo-circuit-breaker-net
+    ports:
+      - "8080:8080"
