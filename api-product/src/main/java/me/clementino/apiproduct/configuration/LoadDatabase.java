@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 @Profile("!test")
 public class LoadDatabase {
     @Bean
-    public CommandLineRunner initDatabase(final ProductRepository productRepository) {
+    public CommandLineRunner initDatabase(ProductRepository productRepository) {
         return args -> {
             var product = Product.builder()
                     .id(1L)

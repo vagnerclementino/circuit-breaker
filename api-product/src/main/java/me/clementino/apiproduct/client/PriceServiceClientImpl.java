@@ -6,6 +6,7 @@ import me.clementino.apiproduct.domain.dto.PriceDTO;
 import me.clementino.apiproduct.domain.dto.PriceServiceErrorResponse;
 import me.clementino.apiproduct.exception.PriceServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,19 +22,28 @@ import java.time.Duration;
 @Component
 @Slf4j
 public class PriceServiceClientImpl implements PriceServiceClient {
+
+
+    private final String priceServiceHost;
+
     private final HttpClient client = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
     @Autowired
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
+
+    public PriceServiceClientImpl( @Value("${service.price.host}") String priceServiceHost, ObjectMapper mapper) {
+        this.priceServiceHost = priceServiceHost;
+        this.mapper = mapper;
+    }
 
     @Override
     public BigDecimal fetchPriceByProductId(Long productId) {
 
         var request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/prices/products/1"))
+                .uri(URI.create(String.format("%s/products/%d", priceServiceHost, productId)))
                 .GET()
                 .header("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .build();
