@@ -12,15 +12,15 @@ import (
 var prices = map[int]*entity.Product{
 	1: {
 		ProductID: 1,
-		Price:     100.00,
+		Price:     122.99,
 	},
 	2: {
 		ProductID: 2,
-		Price:     200.00,
+		Price:     222.99,
 	},
 	3: {
 		ProductID: 3,
-		Price:     300.00,
+		Price:     333.29,
 	},
 }
 
