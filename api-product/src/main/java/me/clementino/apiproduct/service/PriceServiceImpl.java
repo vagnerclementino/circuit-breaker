@@ -1,8 +1,11 @@
 package me.clementino.apiproduct.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.clementino.apiproduct.circuitbreaker.CircuitBreaker;
+import me.clementino.apiproduct.circuitbreaker.InMemoryCircuitBreakerStateStore;
 import me.clementino.apiproduct.client.PriceServiceClient;
 import me.clementino.apiproduct.domain.entity.Product;
+import me.clementino.apiproduct.circuitbreaker.CircuitBreakerOpenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,15 +17,27 @@ import java.util.Optional;
 public class PriceServiceImpl implements PriceService {
 
     private final PriceServiceClient priceServiceClient;
+    private final CircuitBreaker<Long, BigDecimal> circuitBreaker;
 
     @Autowired
     public PriceServiceImpl(PriceServiceClient priceServiceClient) {
         this.priceServiceClient = priceServiceClient;
+        var circuitBreakerStore = InMemoryCircuitBreakerStateStore
+                .builder()
+                .build();
+        circuitBreaker = new CircuitBreaker<>(circuitBreakerStore);
     }
 
     @Override
     public Optional<BigDecimal> getPriceByProduct(Product product) {
-        return Optional.ofNullable(priceServiceClient.fetchPriceByProductId(product.getId()));
+        BigDecimal price = null;
+        try {
+            price = circuitBreaker.executeAction(product.getId(), priceServiceClient::fetchPriceByProductId);
+        } catch (CircuitBreakerOpenException ex) {
+            price = product.getPrice();
+            log.info(String.format("The circuit breaker is OPEN. The service exception is %s. The product's price will be %s", ex.getCause().getMessage(), product.getPrice()));
+        }
+        return Optional.ofNullable(price);
     }
 }
 
