@@ -2,10 +2,9 @@ package me.clementino.apiproduct.service;
 
 import lombok.extern.slf4j.Slf4j;
 import me.clementino.apiproduct.circuitbreaker.CircuitBreaker;
-import me.clementino.apiproduct.circuitbreaker.InMemoryCircuitBreakerStateStore;
+import me.clementino.apiproduct.circuitbreaker.CircuitBreakerOpenException;
 import me.clementino.apiproduct.client.PriceServiceClient;
 import me.clementino.apiproduct.domain.entity.Product;
-import me.clementino.apiproduct.circuitbreaker.CircuitBreakerOpenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +19,9 @@ public class PriceServiceImpl implements PriceService {
     private final CircuitBreaker<Long, BigDecimal> circuitBreaker;
 
     @Autowired
-    public PriceServiceImpl(PriceServiceClient priceServiceClient) {
+    public PriceServiceImpl(PriceServiceClient priceServiceClient, CircuitBreaker<Long, BigDecimal> circuitBreaker) {
         this.priceServiceClient = priceServiceClient;
-        var circuitBreakerStore = InMemoryCircuitBreakerStateStore
-                .builder()
-                .build();
-        circuitBreaker = new CircuitBreaker<>(circuitBreakerStore);
+        this.circuitBreaker = circuitBreaker;
     }
 
     @Override

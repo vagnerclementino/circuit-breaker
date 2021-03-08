@@ -1,6 +1,7 @@
 package me.clementino.apiproduct.circuitbreaker;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface CircuitBreakerStateStore {
 
@@ -22,8 +23,8 @@ public interface CircuitBreakerStateStore {
     boolean isClosed();
 
     // This returns the last date which the circuit breaker's status was changed
-    LocalDateTime getLastStateChangedDate();
+    Optional<LocalDateTime> getLastStateChangedDate();
 
     // This returns the last exception received by the circuit breaker
-    Exception getLastException();
+    Optional<Exception> getLastException();
 }

@@ -1,31 +1,42 @@
 package me.clementino.apiproduct.circuitbreaker;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import java.time.LocalDateTime;
 import java.util.function.Function;
 
-public class CircuitBreaker <T,R>{
+@Slf4j
+@Component
+public class CircuitBreaker<T, R> {
 
     private final CircuitBreakerStateStore stateStore;
+    private final long timeout;
 
-    public CircuitBreaker(CircuitBreakerStateStore stateStore) {
+    @Autowired
+    public CircuitBreaker(CircuitBreakerStateStore stateStore, @Value("${circuitbreaker.timeout:30}") long timeout) {
         this.stateStore = stateStore;
-    }
-
-    public boolean isClosed() {
-        return stateStore.isClosed();
+        this.timeout = timeout;
     }
 
     public boolean isOpen() {
         return !stateStore.isClosed();
     }
 
-    public R executeAction (T t, Function<T,R> action) {
+    public R executeAction(T t, Function<T, R> action) {
+
+        log.info(String.format("The circuit breaker current status is: %s", stateStore.getState().getDescription()));
 
         if (isOpen()) {
+
+            log.info("The circuit breaker is OPEN");
             // The circuit breaker is Open. Check if the Open timeout has expired.
             // If it has, set the state to HalfOpen. Another approach might be to
             // check for the HalfOpen state that had be set by some other operation.
-            if (stateStore.getLastStateChangedDate().plusSeconds(60).isBefore(LocalDateTime.now())) {
+            if (hasTimeoutExpired()) {
+                log.info("The Open timeout has expired.");
                 // The Open timeout has expired. Allow one operation to execute. Note that, in
                 // this example, the circuit breaker is set to HalfOpen after being
                 // in the Open state for some period of time. An alternative would be to set
@@ -50,7 +61,6 @@ public class CircuitBreaker <T,R>{
                 } catch (Exception ex) {
                     // If there's still an exception, trip the breaker again immediately.
                     stateStore.trip(ex);
-
                     // Throw the exception so that the caller knows which exception occurred.
                     throw ex;
                 }
@@ -58,9 +68,13 @@ public class CircuitBreaker <T,R>{
             // The Open timeout hasn't yet expired. Throw a CircuitBreakerOpen exception to
             // inform the caller that the call was not actually attempted,
             // and return the most recent exception received.
-            throw new CircuitBreakerOpenException(stateStore.getLastException());
+            log.info("The Open timeout hasn't yet expired. ");
+            throw new CircuitBreakerOpenException(stateStore
+                    .getLastException()
+                    .orElse(new RuntimeException()));
         }
 
+        log.info("The circuit breaker is Closed, execute the action.");
         // The circuit breaker is Closed, execute the action.
         try {
             return action.apply(t);
@@ -73,5 +87,13 @@ public class CircuitBreaker <T,R>{
             // the type of exception that was thrown.
             throw ex;
         }
+    }
+
+    private boolean hasTimeoutExpired() {
+        return stateStore.
+                getLastStateChangedDate()
+                .orElseThrow(RuntimeException::new)
+                .plusSeconds(timeout)
+                .isBefore(LocalDateTime.now());
     }
 }
