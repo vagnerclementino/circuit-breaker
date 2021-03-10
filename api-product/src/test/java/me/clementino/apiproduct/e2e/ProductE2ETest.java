@@ -72,7 +72,7 @@ public class ProductE2ETest {
         var suggestedPrice = savedProduct.getPrice().add(BigDecimal.valueOf(ThreadLocalRandom.current().nextLong(100)));
 
         wiremock
-                .givenThat(get(urlPathEqualTo("/products/" + savedProduct.getId()))
+                .givenThat(get(urlPathEqualTo("/prices/products/" + savedProduct.getId()))
                         .willReturn(
                                 okJson("{\"product_id\":"+ savedProduct.getId() + ",\"price\":" + suggestedPrice.toString() + "}")
                         )

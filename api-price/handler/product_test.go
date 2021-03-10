@@ -35,7 +35,7 @@ func TestGetProductPrice(t *testing.T) {
 			expectReturn: `
 			{
 				"product_id": 1,
-				"price": 100
+				"price": 122.99
 			}`,
 			testFunc: func(productID, expectStatus int, expectReturn string) func(t *testing.T) {
 				return func(t *testing.T) {

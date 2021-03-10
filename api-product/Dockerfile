@@ -1,7 +1,7 @@
 FROM gradle:jdk11 AS cache
 WORKDIR /app
 ENV GRADLE_USER_HOME /cache
-COPY build.gradle settings.gradle ./
+COPY build.gradle settings.gradle gradle.properties ./
 RUN gradle getDeps --no-daemon --info --stacktrace
 
 ############################################################################
@@ -10,8 +10,8 @@ FROM gradle:jdk11 AS builder
 WORKDIR /home/gradle
 COPY --from=cache /cache /home/gradle/.gradle
 COPY src/ src/
-COPY build.gradle settings.gradle ./
-RUN gradle bootJar --no-daemon
+COPY build.gradle settings.gradle gradle.properties ./
+RUN gradle bootJar
 
 ############################################################################
 FROM adoptopenjdk/openjdk11:jre-11.0.10_9-alpine
