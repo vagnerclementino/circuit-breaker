@@ -1,0 +1,2 @@
+export CONTAINER_PORT=8090
+export PRICE_SERVICE_URL=http://api-price:8080
